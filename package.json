@@ -5,19 +5,31 @@
   "main": "index.js",
   "repository": "jkmart/user-auth",
   "dependencies": {
-    "bluebird": "^3.3.4",
     "boom": "^4.2.0",
     "javascript-state-machine": "^2.4.0"
   },
   "devDependencies": {
-    "jscs": "^3.0.7"
+    "code": "^5.1.0",
+    "jscs": "^3.0.7",
+    "lab": "^14.3.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node test/index",
+    "test:coverage": "lab -a code -r html -o coverage/index.html",
     "version:dev": "npm version prerelease",
     "prepublish:dev": "npm run version:dev",
     "publish:dev": "npm publish"
   },
   "author": "Kerry Martin",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=8"
+  },
+  "tags": [
+    "crypto",
+    "password",
+    "validation",
+    "salt",
+    "pbkdf2"
+  ]
 }

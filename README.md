@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/jkmart/user-auth.svg?branch=master)](https://travis-ci.org/jkmart/user-auth)
 ## Synopsis
 
 Hashes and verifies passwords
@@ -35,12 +36,23 @@ Install npm packages
 ```javascript
 var userAuth = require('user-auth');
 
-userAuth.update('haPpy3', {})
+userAuth.update('haPpy3', {id: 1, name: 'Joe', pass: 'ab12$a'})
 .then(function (user) {
   console.log('hash', user.pass, 'salt', user.salt); // long random strings
-  return userAuth.verify('haPpy3', user)
+  return userAuth.authenticate('haPpy3', user)
 })
 .then(function (isValid) {
   console.log('Verified?', isValid); // true!
 })
+```
+or
+```javascript
+const userAuth = require('user-auth');
+
+async function example() {
+  const user = await userAuth.update('haPpy3', {id: 1, name: 'Joe', pass: 'ab12$a'});
+  console.log('hash', user.pass, 'salt', user.salt); // long random strings
+  const isAuthenticated = await userAuth.authenticate('haPpy3', user);
+  console.log('Verified?', isAuthenticated);// true!
+}
 ```
