@@ -1,8 +1,9 @@
 {
   "name": "user-auth",
   "version": "1.0.0",
-  "description": "Opinionated password hashing and verification",
+  "description": "Nodejs password hashing and verification",
   "main": "index.js",
+  "repository": "jkmart/user-auth",
   "dependencies": {
     "bluebird": "^3.3.4",
     "boom": "^4.2.0",
