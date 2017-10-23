@@ -254,13 +254,13 @@ describe('auth.hash', () => {
 
 });
 
-describe('userAuth.update', () => {
+describe('userAuth.generate', () => {
 
-  it('returns user object with pass and salt fields', async () => {
+  it('returns user object with hash and salt fields', async () => {
 
     try {
-      const {pass, salt} = await userAuth.update('hapPy3', {});
-      expect(pass).to.exist();
+      const {hash, salt} = await userAuth.generate('hapPy3');
+      expect(hash).to.exist();
       expect(salt).to.exist();
     } catch (err) {
       expect(err).to.not.exist();
@@ -273,20 +273,7 @@ describe('userAuth.update', () => {
     let callErr;
 
     try {
-      await userAuth.update(null, {});
-    } catch (err) {
-      callErr = err;
-    }
-    expect(callErr).to.exist();
-
-  });
-
-  it('throws error when user object is missing', async () => {
-
-    let callErr;
-
-    try {
-      await userAuth.update('hapPy3');
+      await userAuth.generate(null);
     } catch (err) {
       callErr = err;
     }
@@ -307,7 +294,7 @@ describe('userAuth.authenticate', () => {
     Crypto.pbkdf2(internals.testPassword, internals.testSalt, 10000, 512, 'sha1', (err, dk) => {
       internals.testHash = new Buffer(dk, 'binary').toString('hex');
       internals.testUser = {
-        pass: internals.testHash,
+        hash: internals.testHash,
         salt: internals.testSalt
       };
       done();

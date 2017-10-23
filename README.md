@@ -36,9 +36,9 @@ Install npm packages
 ```javascript
 var userAuth = require('user-auth');
 
-userAuth.update('haPpy3', {id: 1, name: 'Joe', pass: 'ab12$a'})
+userAuth.generate('haPpy3')
 .then(function (user) {
-  console.log('hash', user.pass, 'salt', user.salt); // long random strings
+  console.log('hash', user.hash, 'salt', user.salt); // long random strings
   return userAuth.authenticate('haPpy3', user)
 })
 .then(function (isValid) {
@@ -50,9 +50,9 @@ or
 const userAuth = require('user-auth');
 
 async function example() {
-  const user = await userAuth.update('haPpy3', {id: 1, name: 'Joe', pass: 'ab12$a'});
-  console.log('hash', user.pass, 'salt', user.salt); // long random strings
-  const isAuthenticated = await userAuth.authenticate('haPpy3', user);
+  const {hash, salt} = await userAuth.generate('haPpy3');
+  console.log('hash', hash, 'salt', salt); // long random strings
+  const isAuthenticated = await userAuth.authenticate('haPpy3', {hash, salt});
   console.log('Verified?', isAuthenticated);// true!
 }
 ```
