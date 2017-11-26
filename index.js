@@ -1,5 +1,3 @@
-'use strict';
+const Auth = require('./lib/auth');
 
-const userAuth = require('./lib/userAuth');
-
-module.exports = userAuth;
+module.exports = Auth;
