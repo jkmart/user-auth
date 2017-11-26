@@ -31,5 +31,12 @@
     "validation",
     "salt",
     "pbkdf2"
+  ],
+  "keywords": [
+    "crypto",
+    "password",
+    "validation",
+    "salt",
+    "pbkdf2"
   ]
 }
