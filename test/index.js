@@ -1,7 +1,11 @@
+'use strict';
+
 // Load modules
 const Code = require('code');
 const Crypto = require('crypto');
 const Lab = require('lab');
+
+const { before, describe, it } = exports.lab = Lab.script();
 
 const Hash = require('../lib/hash');
 const Auth = require('../lib/auth');
@@ -12,340 +16,405 @@ Crypto.DEFAULT_ENCODING = 'hex';
 // Declare internals
 const internals = {};
 
-// Test shortcuts
-const lab = exports.lab = Lab.script();
-const describe = lab.describe;
-const it = lab.it;
-const expect = Code.expect;
+const { expect } = Code;
 
 describe('Hash.verify', () => {
 
-  lab.before((done) => {
+    before(async () => {
 
-    internals.testPassword = 'Pass!23';
+        internals.testPassword = 'Pass!23';
 
-    internals.testSalt = Crypto.randomBytes(128).toString('base64');
+        internals.testSalt = Crypto.randomBytes(128).toString('base64');
 
-    Crypto.pbkdf2(internals.testPassword, internals.testSalt, 10000, 512, 'sha1', (err, dk) => {
-      internals.testHash = dk;
-      done();
+        return await new Promise((resolve, reject) => {
+
+            Crypto.pbkdf2(internals.testPassword, internals.testSalt, 10000,
+                512,
+                'sha1', (err, dk) => {
+
+                    if (err) {
+                        reject(err);
+                    }
+
+                    internals.testHash = dk;
+                    resolve();
+                });
+        });
     });
-  });
 
-  it('verifies password with hash and salt', async () => {
+    it('verifies password with hash and salt', async () => {
 
-    let isVerified;
-    try {
-      isVerified = await Hash.verify(internals.testPassword, internals.testHash, internals.testSalt);
-    } catch (err) {
-      expect(err).to.not.exist();
-    }
-    expect(isVerified).to.equal(true);
-  });
+        let isVerified;
+        try {
+            isVerified = await Hash.verify(internals.testPassword,
+                internals.testHash, internals.testSalt);
+        }
+        catch (err) {
+            expect(err).to.not.exist();
+        }
 
-  it('fails to verify non-matching password with hash and salt', async () => {
+        expect(isVerified).to.equal(true);
+    });
 
-    let isVerified;
-    try {
-      isVerified = await Hash.verify('someotherpassword', internals.testHash, internals.testSalt);
-    } catch (err) {
-      expect(err).to.not.exist();
-    }
-    expect(isVerified).to.equal(false);
-  });
+    it('fails to verify non-matching password with hash and salt', async () => {
 
-  it('throws error when password is missing', async () => {
+        let isVerified;
+        try {
+            isVerified = await Hash.verify('someotherpassword',
+                internals.testHash, internals.testSalt);
+        }
+        catch (err) {
+            expect(err).to.not.exist();
+        }
 
-    let callErr;
-    try {
-      await Hash.verify(null, internals.testHash, internals.testSalt);
-    } catch (err) {
-      callErr = err;
-    }
-    expect(callErr).to.exist();
-  });
+        expect(isVerified).to.equal(false);
+    });
 
-  it('throws error when salt is missing', async () => {
+    it('throws error when password is missing', async () => {
 
-    let callErr;
-    try {
-      await Hash.verify(internals.testPassword, internals.testHash, null);
-    } catch (err) {
-      callErr = err;
-    }
-    expect(callErr).to.exist();
-  });
+        let callErr;
+        try {
+            await Hash.verify(null, internals.testHash, internals.testSalt);
+        }
+        catch (err) {
+            callErr = err;
+        }
+
+        expect(callErr).to.exist();
+    });
+
+    it('throws error when salt is missing', async () => {
+
+        let callErr;
+        try {
+            await Hash.verify(internals.testPassword, internals.testHash, null);
+        }
+        catch (err) {
+            callErr = err;
+        }
+
+        expect(callErr).to.exist();
+    });
 
 });
 
 describe('Hash.create', () => {
 
-  lab.before(async () => {
+    before(() => {
 
-    internals.testPassword = 'Pass!23';
+        internals.testPassword = 'Pass!23';
 
-  });
+    });
 
-  it('hashes a password and returns hash and salt', async () => {
+    it('hashes a password and returns hash and salt', async () => {
 
-    const {hash, salt} = await Hash.create(internals.testPassword);
-    expect(hash).to.exist();
-    expect(salt).to.exist();
+        const { hash, salt } = await Hash.create(internals.testPassword);
+        expect(hash).to.exist();
+        expect(salt).to.exist();
 
-  });
+    });
 
-  it('hashes a password and returns hash and salt which can then be verified', async () => {
+    it('hashes a password and returns hash and salt which can then be verified',
+        async () => {
 
-    try {
+            try {
 
-      const {hash, salt} = await Hash.create(internals.testPassword);
-      const isVerified = await Hash.verify(internals.testPassword, hash, salt);
+                const { hash, salt } = await Hash.create(
+                    internals.testPassword);
+                const isVerified = await Hash.verify(internals.testPassword,
+                    hash, salt);
 
-      expect(isVerified).to.equal(true);
+                expect(isVerified).to.equal(true);
 
-    } catch (err) {
-      expect(err).to.not.exist();
-    }
-  });
+            }
+            catch (err) {
+                expect(err).to.not.exist();
+            }
+        });
 
-  it('throws error when password is missing', async () => {
+    it('throws error when password is missing', async () => {
 
-    let callErr;
+        let callErr;
 
-    try {
-      await Hash.create();
-    } catch (err) {
-      callErr = err;
-    }
+        try {
+            await Hash.create();
+        }
+        catch (err) {
+            callErr = err;
+        }
 
-    expect(callErr).to.exist();
-  });
+        expect(callErr).to.exist();
+    });
 
-  it('throws error when password is less than 6 characters', async () => {
+    it('throws error when password is less than 6 characters', async () => {
 
-    let callErr;
+        let callErr;
 
-    try {
-      await Hash.create('Pas!2');
-    } catch (err) {
-      callErr = err;
-    }
+        try {
+            await Hash.create('Pas!2');
+        }
+        catch (err) {
+            callErr = err;
+        }
 
-    expect(callErr).to.exist();
-  });
+        expect(callErr).to.exist();
+    });
 
-  it('throws error when password has only 1 valid characteristic', async () => {
+    it('throws error when password has only 1 valid characteristic',
+        async () => {
 
-    let callErr;
+            let callErr;
 
-    try {
-      await Hash.create('password');
-    } catch (err) {
-      callErr = err;
-    }
+            try {
+                await Hash.create('password');
+            }
+            catch (err) {
+                callErr = err;
+            }
 
-    expect(callErr).to.exist();
+            expect(callErr).to.exist();
 
-    callErr = null;
+            callErr = null;
 
-    try {
-      await Hash.create('123456');
-    } catch (err) {
-      callErr = err;
-    }
-    expect(callErr).to.exist();
+            try {
+                await Hash.create('123456');
+            }
+            catch (err) {
+                callErr = err;
+            }
 
-    callErr = null;
+            expect(callErr).to.exist();
 
-    try {
-      await Hash.create('PASSWORD');
-    } catch (err) {
-      callErr = err;
-    }
-    expect(callErr).to.exist();
+            callErr = null;
 
-    callErr = null;
+            try {
+                await Hash.create('PASSWORD');
+            }
+            catch (err) {
+                callErr = err;
+            }
 
-    try {
-      await Hash.create('!@#$%^');
-    } catch (err) {
-      callErr = err;
-    }
-    expect(callErr).to.exist();
+            expect(callErr).to.exist();
 
-  });
+            callErr = null;
 
-  it('throws error when password has only 2 valid characteristics', async () => {
+            try {
+                await Hash.create('!@#$%^');
+            }
+            catch (err) {
+                callErr = err;
+            }
 
-    let callErr;
+            expect(callErr).to.exist();
 
-    try {
-      await Hash.create('Password');
-    } catch (err) {
-      callErr = err;
-    }
+        });
 
-    expect(callErr).to.exist();
+    it('throws error when password has only 2 valid characteristics',
+        async () => {
 
-    callErr = null;
+            let callErr;
 
-    try {
-      await Hash.create('p23456');
-    } catch (err) {
-      callErr = err;
-    }
-    expect(callErr).to.exist();
+            try {
+                await Hash.create('Password');
+            }
+            catch (err) {
+                callErr = err;
+            }
 
-    callErr = null;
+            expect(callErr).to.exist();
 
-    try {
-      await Hash.create('PASSW1RD');
-    } catch (err) {
-      callErr = err;
-    }
-    expect(callErr).to.exist();
+            callErr = null;
 
-    callErr = null;
+            try {
+                await Hash.create('p23456');
+            }
+            catch (err) {
+                callErr = err;
+            }
 
-    try {
-      await Hash.create('p@#$%^');
-    } catch (err) {
-      callErr = err;
-    }
-    expect(callErr).to.exist();
+            expect(callErr).to.exist();
 
-  });
+            callErr = null;
 
-  it('hashes a password when it has 3 valid characteristics', async () => {
+            try {
+                await Hash.create('PASSW1RD');
+            }
+            catch (err) {
+                callErr = err;
+            }
 
-    try {
-      const {hash, salt} = await Hash.create('Passw1rd');
-      expect(hash).to.exist();
-      expect(salt).to.exist();
-    } catch (err) {
-      expect(err).to.not.exist();
-    }
+            expect(callErr).to.exist();
 
-    try {
-      const {hash, salt} = await Hash.create('Pass!23');
-      expect(hash).to.exist();
-      expect(salt).to.exist();
-    } catch (err) {
-      expect(err).to.not.exist();
-    }
+            callErr = null;
 
-    try {
-      const {hash, salt} = await Hash.create('a#Fasdf');
-      expect(hash).to.exist();
-      expect(salt).to.exist();
-    } catch (err) {
-      expect(err).to.not.exist();
-    }
+            try {
+                await Hash.create('p@#$%^');
+            }
+            catch (err) {
+                callErr = err;
+            }
 
-    try {
-      const {hash, salt} = await Hash.create('HELP@2');
-      expect(hash).to.exist();
-      expect(salt).to.exist();
-    } catch (err) {
-      expect(err).to.not.exist();
-    }
-  });
+            expect(callErr).to.exist();
+
+        });
+
+    it('hashes a password when it has 3 valid characteristics', async () => {
+
+        try {
+            const { hash, salt } = await Hash.create('Passw1rd');
+            expect(hash).to.exist();
+            expect(salt).to.exist();
+        }
+        catch (err) {
+            expect(err).to.not.exist();
+        }
+
+        try {
+            const { hash, salt } = await Hash.create('Pass!23');
+            expect(hash).to.exist();
+            expect(salt).to.exist();
+        }
+        catch (err) {
+            expect(err).to.not.exist();
+        }
+
+        try {
+            const { hash, salt } = await Hash.create('a#Fasdf');
+            expect(hash).to.exist();
+            expect(salt).to.exist();
+        }
+        catch (err) {
+            expect(err).to.not.exist();
+        }
+
+        try {
+            const { hash, salt } = await Hash.create('HELP@2');
+            expect(hash).to.exist();
+            expect(salt).to.exist();
+        }
+        catch (err) {
+            expect(err).to.not.exist();
+        }
+    });
 
 });
 
 describe('Auth.generate', () => {
 
-  it('returns user object with hash and salt fields', async () => {
+    it('returns user object with hash and salt fields', async () => {
 
-    try {
-      const {hash, salt} = await Auth.generate('hapPy3');
-      expect(hash).to.exist();
-      expect(salt).to.exist();
-    } catch (err) {
-      expect(err).to.not.exist();
-    }
+        try {
+            const { hash, salt } = await Auth.generate('hapPy3');
+            expect(hash).to.exist();
+            expect(salt).to.exist();
+        }
+        catch (err) {
+            expect(err).to.not.exist();
+        }
 
-  });
+    });
 
-  it('throws error when password is missing', async () => {
+    it('throws error when password is missing', async () => {
 
-    let callErr;
+        let callErr;
 
-    try {
-      await Auth.generate(null);
-    } catch (err) {
-      callErr = err;
-    }
-    expect(callErr).to.exist();
+        try {
+            await Auth.generate(null);
+        }
+        catch (err) {
+            callErr = err;
+        }
 
-  });
+        expect(callErr).to.exist();
+
+    });
 
 });
 
 describe('Auth.authenticate', () => {
 
-  lab.before((done) => {
+    before(async () => {
 
-    internals.testPassword = 'Pass!23';
+        internals.testPassword = 'Pass!23';
 
-    internals.testSalt = Crypto.randomBytes(128).toString('base64');
+        internals.testSalt = Crypto.randomBytes(128).toString('base64');
 
-    Crypto.pbkdf2(internals.testPassword, internals.testSalt, 10000, 512, 'sha1', (err, dk) => {
-      internals.testHash = dk;
-      internals.testUser = {
-        hash: internals.testHash,
-        salt: internals.testSalt
-      };
-      done();
+        return await new Promise((resolve, reject) => {
+
+            Crypto.pbkdf2(internals.testPassword, internals.testSalt, 10000,
+                512,
+                'sha1', (err, dk) => {
+
+                    if (err) {
+                        reject(err);
+                    }
+
+                    internals.testHash = dk;
+                    internals.testUser = {
+                        hash: internals.testHash,
+                        salt: internals.testSalt
+                    };
+                    resolve();
+                });
+        });
+
     });
-  });
 
-  it('verifies password matches users hash and salt', async () => {
+    it('verifies password matches users hash and salt', async () => {
 
-    try {
-      const isAuthenticated = await Auth.authenticate(internals.testPassword, internals.testUser);
-      expect(isAuthenticated).to.equal(true);
-    } catch (err) {
-      expect(err).to.not.exist();
-    }
+        try {
+            const isAuthenticated = await Auth.authenticate(
+                internals.testPassword, internals.testUser);
+            expect(isAuthenticated).to.equal(true);
+        }
+        catch (err) {
+            expect(err).to.not.exist();
+        }
 
-  });
+    });
 
-  it('fails to verify when password does not match users hash and salt', async () => {
+    it('fails to verify when password does not match users hash and salt',
+        async () => {
 
-    try {
-      const isAuthenticated = await Auth.authenticate('No7UrP@ss0rd', internals.testUser);
-      expect(isAuthenticated).to.equal(false);
-    } catch (err) {
-      expect(err).to.not.exist();
-    }
+            try {
+                const isAuthenticated = await Auth.authenticate('No7UrP@ss0rd',
+                    internals.testUser);
+                expect(isAuthenticated).to.equal(false);
+            }
+            catch (err) {
+                expect(err).to.not.exist();
+            }
 
-  });
+        });
 
-  it('throws error when password is missing', async () => {
+    it('throws error when password is missing', async () => {
 
-    let callErr;
+        let callErr;
 
-    try {
-      await Auth.authenticate(null, {});
-    } catch (err) {
-      callErr = err;
-    }
-    expect(callErr).to.exist();
+        try {
+            await Auth.authenticate(null, {});
+        }
+        catch (err) {
+            callErr = err;
+        }
 
-  });
+        expect(callErr).to.exist();
 
-  it('throws error when user object is missing', async () => {
+    });
 
-    let callErr;
+    it('throws error when user object is missing', async () => {
 
-    try {
-      await Auth.authenticate('hapPy3');
-    } catch (err) {
-      callErr = err;
-    }
-    expect(callErr).to.exist();
+        let callErr;
 
-  });
+        try {
+            await Auth.authenticate('hapPy3');
+        }
+        catch (err) {
+            callErr = err;
+        }
+
+        expect(callErr).to.exist();
+
+    });
 
 });

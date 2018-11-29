@@ -5,15 +5,19 @@
   "main": "index.js",
   "repository": "jkmart/user-auth",
   "dependencies": {
-    "boom": "^4.2.0",
-    "javascript-state-machine": "^2.4.0"
+    "boom": "7.3.0",
+    "javascript-state-machine": "2.4.0"
   },
   "devDependencies": {
-    "code": "^5.1.0",
-    "jscs": "^3.0.7",
-    "lab": "^14.3.1"
+    "code": "5.2.4",
+    "eslint": "5.9.0",
+    "eslint-config-hapi": "12.0.0",
+    "eslint-plugin-hapi": "4.1.0",
+    "lab": "18.0.0"
   },
   "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
     "test": "node test/index",
     "test:coverage": "lab -a code -r html -o coverage/index.html",
     "version:dev": "npm version prerelease",
