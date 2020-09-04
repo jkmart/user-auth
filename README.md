@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/jkmart/user-auth.svg?branch=master)](https://travis-ci.org/jkmart/user-auth)
+[![Build Status](https://travis-ci.org/jkmart/user-auth.svg?branch=master)](https://travis-ci.org/jkmart/user-auth) 
 ## Synopsis
 
 Hashes and verifies passwords
